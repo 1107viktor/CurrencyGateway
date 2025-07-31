@@ -1,0 +1,5 @@
+Предположите что делает этот код
+exec ('select ? = ISNULL(change_tracking_current_version(),0)',
+@ChangeTrackingCurrentVersion output) at [serv1]
+
+Код запрашивает текущую версию отслеживания изменений (Change Tracking) с удалённого сервера [serv1] через Linked Server и сохраняет её в выходную переменную @ChangeTrackingCurrentVersion. Если отслеживание не настроено, возвращает 0.

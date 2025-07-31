@@ -1,0 +1,27 @@
+-- Разделяем условие фильтрации:
+WHERE d.Number = '79934356368' AND c.Code = 'ПП'
+
+
+-- Для Document (фильтр по Number):
+CREATE NONCLUSTERED INDEX IX_Document_Number 
+ON Document(Number)
+INCLUDE (DocDate); -- Убирает Key Lookup
+
+-- Для Contract (фильтр по Code):
+CREATE NONCLUSTERED INDEX IX_Contract_Code 
+ON Contract(Code);
+
+-- В итоге:
+SELECT 
+	d.DocDate
+FROM 
+	Document d
+INNER JOIN 
+	Contract c 
+ON 
+	c.ContractID = d.documentID
+WHERE 
+	d.Number = '79934356368' 
+AND 
+	c.Code = 'ПП';
+

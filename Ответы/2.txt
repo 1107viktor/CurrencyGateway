@@ -1,0 +1,36 @@
+-- Индекс для оптимизации связей Parent-Child
+CREATE INDEX IX_Departs_Parent_Id ON [Test].[Departs] ([Parent_Id]);
+GO
+
+
+WITH ExcludedDepartments AS (
+    SELECT 
+        Id,
+        Parent_Id,
+        Name,
+        0 AS Level
+    FROM [Test].[Departs]
+    WHERE Id = @WithOutDepart_Id
+    
+    UNION ALL
+    
+    SELECT 
+        d.Id,
+        d.Parent_Id,
+        d.Name,
+        ed.Level + 1
+    FROM [Test].[Departs] d
+    JOIN ExcludedDepartments ed 
+        ON d.Parent_Id = ed.Id
+)
+SELECT 
+    D.Id AS ID,
+    D.Parent_Id AS [ID Родителя],
+    D.Name AS [Название подразделения]
+FROM [Test].[Departs] D
+WHERE NOT EXISTS (
+    SELECT 1 
+    FROM ExcludedDepartments E 
+    WHERE E.Id = D.Id
+)
+ORDER BY D.Id;

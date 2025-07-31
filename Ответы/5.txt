@@ -1,0 +1,8 @@
+Чем отличается TableSeek от TableScan в плане запроса
+
+TableSeek - Index Seek?
+
+Index Seek (MSSQL) = Index Scan (PostgreSQL) - оба используют индекс для поиска, ходят в таблицу за данными.
+Index Seek (MSSQL) = Index Only Scan (PostgreSQL) - когда данные берутся только из индекса.
+
+TableScan (MSSQL) = Postgres Seq Scan (PostgreSQL) - читает всю таблицу последовательно 

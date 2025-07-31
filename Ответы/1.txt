@@ -1,0 +1,56 @@
+-- ОШИБКА:
+-- СЧЁТ ДЕЙСТВОВУЕТ
+-- ДОГОВОР НЕ ДЕЙСТВУЕТ
+
+WITH ContractDates AS (
+    SELECT 
+        c.Id,
+        c.DocNo,
+        c.DateFrom,
+        c.DateTo,
+        -- Начало договора DATETIME
+        CAST(c.DateFrom AS DATETIME) AS ContractStart,
+        -- Окончание договора DATETIME (последний день, окончание договора = 00:00 следующего дня)
+        CASE 
+            WHEN c.DateTo IS NULL THEN NULL 
+            ELSE DATEADD(DAY, 1, CAST(c.DateTo AS DATETIME)) 
+        END AS ContractEnd
+    FROM 
+        [Test].[Contracts] c
+)
+SELECT 
+    a.Id AS [ID счёта],       
+    a.Number AS [Номер счета],
+    a.DateTimeFrom AS [Счёт начал действовать],  
+    a.DateTimeTo AS [Cчет прекратил действовать],
+
+    c.Id AS [ID договора],      
+    c.DocNo AS [Номер документа],  
+    c.DateFrom AS [Договор начался],
+    c.DateTo AS [Последний день договора], -- последний день действия договора; NULL = бесконечность
+    c.ContractEnd AS [Окончание договора кончился],
+    
+    CASE
+        WHEN a.DateTimeFrom < c.ContractStart
+            THEN 'Счет начался раньше договора'
+        WHEN c.ContractEnd IS NOT NULL AND a.DateTimeTo IS NULL 
+            THEN 'Бессрочный счет после окончания срока договора'
+        WHEN c.ContractEnd IS NOT NULL AND a.DateTimeFrom >= c.ContractEnd  -- >= вместо >
+            THEN 'Счет начался после договора'
+        WHEN c.ContractEnd IS NOT NULL AND a.DateTimeTo > c.ContractEnd
+            THEN 'Счет закончился после договора'
+    END AS [Описание ошибки]
+FROM 
+    [Test].[Accounts] a
+INNER JOIN 
+    ContractDates c 
+ON 
+    a.Contract_Id = c.Id
+WHERE 
+    a.DateTimeFrom < c.ContractStart 
+    OR (c.ContractEnd IS NOT NULL AND a.DateTimeFrom >= c.ContractEnd)
+    OR (c.ContractEnd IS NOT NULL AND (a.DateTimeTo IS NULL OR a.DateTimeTo > c.ContractEnd))
+ORDER BY 
+    a.Id;
+
+
